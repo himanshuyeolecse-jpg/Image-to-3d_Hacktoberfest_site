@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: wukong-relief
+    runtime: static
+    staticPublishPath: .
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: public, max-age=3600
+      - path: /vendor/tf/*.wasm
+        name: Content-Type
+        value: application/wasm
