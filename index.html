@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wukong, left standing</title>
+<style>
+:root{--ink:#0b141e;--mist:#d4e0ec;--cinnabar:#b3262f;--gold:#d4a437;--slate:#16263a;--serif:"Palatino Linotype","Book Antiqua",Palatino,"Iowan Old Style",Georgia,serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+*{box-sizing:border-box;margin:0}
+html{background:var(--ink);color:var(--mist);font-family:var(--sans);scroll-behavior:smooth}
+body{overflow-x:hidden}
+body.locked{overflow:hidden}
+/* gate */
+#gate{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:var(--ink);transition:opacity 1.2s}
+#gate.gone{opacity:0;pointer-events:none}
+#gate button{font:400 clamp(1.4rem,3vw,2.2rem)/1 var(--serif);letter-spacing:.5em;padding:1.1rem 1.8rem 1.1rem 2.3rem;color:var(--mist);background:none;border:1px solid #d4e0ec55;cursor:pointer;transition:.4s}
+#gate button:hover:not(:disabled),#gate button:focus-visible{border-color:var(--gold);color:var(--gold);letter-spacing:.7em;outline:none}
+#gate button:disabled{opacity:.35;cursor:wait}
+#gate p{margin-top:1.4rem;text-align:center;font-size:.85rem;color:#d4e0ec99}
+/* hero stage */
+#hero{position:relative;height:100svh;overflow:hidden;background:#000}
+#stage{position:absolute;left:50%;top:50%;aspect-ratio:7/3;width:max(100vw,calc(100svh*7/3));transform:translate(-50%,-50%)}
+#stage>*{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#plate{opacity:0}
+#gl{opacity:0;touch-action:pan-y;cursor:grab}
+#gl:active{cursor:grabbing}
+#hint{position:absolute;left:5vw;bottom:5vh;text-align:left;font:italic 1rem var(--serif);letter-spacing:.2em;color:#fff;opacity:0;transition:opacity 1.5s;pointer-events:none;text-shadow:0 1px 12px #0008}
+#mute{position:absolute;right:1rem;top:1rem;z-index:5;background:#0b141e88;border:1px solid #d4e0ec44;color:var(--mist);padding:.5rem .8rem;font:.8rem var(--sans);cursor:pointer;opacity:0;transition:opacity 1s}
+#mute.on{opacity:1}
+/* world below */
+#world{position:relative}
+#world::before{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradient(#0b141ee6,#0b141ef2),url(assets/plate.jpg) center/cover;filter:saturate(.8)}
+section.s{max-width:68rem;margin:0 auto;padding:18vh 6vw}
+h2{font:400 clamp(2rem,5.5vw,4.4rem)/1.05 var(--serif);letter-spacing:.04em;max-width:16ch}
+.lede{margin-top:2rem;max-width:34rem;font-size:1.15rem;line-height:1.65;color:#d4e0ecd0}
+.steps{display:grid;gap:0;margin-top:4rem;counter-reset:s;border-left:1px solid #d4a43755}
+.steps li{list-style:none;padding:1.6rem 0 1.6rem 2rem;counter-increment:s;position:relative;transition:padding .4s}
+.steps li::before{content:counter(s);position:absolute;left:-.8rem;top:1.5rem;width:1.6rem;height:1.6rem;border-radius:50%;background:var(--ink);border:1px solid var(--gold);color:var(--gold);font:.8rem/1.5rem var(--serif);text-align:center}
+.steps li:hover{padding-left:2.6rem}
+.steps b{display:block;font:400 1.5rem var(--serif);margin-bottom:.3rem}
+.steps span{color:#d4e0eca8;max-width:36rem;display:block;line-height:1.55}
+.proof{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:3rem;margin-top:4rem}
+.proof h3{font:400 1.3rem var(--serif);color:var(--gold);margin-bottom:.5rem}
+.proof p{line-height:1.6;color:#d4e0ecbb}
+.fog{position:fixed;inset:-10%;z-index:-1;pointer-events:none;background:radial-gradient(40% 30% at 20% 70%,#9fb6cf22,transparent),radial-gradient(45% 35% at 80% 40%,#9fb6cf1a,transparent);animation:drift 40s ease-in-out infinite alternate}
+@keyframes drift{to{transform:translate3d(6%,-3%,0) scale(1.1)}}
+#sv{position:relative;margin-top:3rem;aspect-ratio:16/9;background:radial-gradient(ellipse at 50% 40%,#2a3d55,#0e1722 75%);border:1px solid #d4a43744;overflow:hidden}
+#svc{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#svdrop{position:absolute;inset:0;display:none;place-items:center;background:#0b141ecc;font:italic 1.4rem var(--serif);color:var(--gold);pointer-events:none}
+#sv.over #svdrop{display:grid}
+#tabs{display:flex;flex-wrap:wrap;gap:.4rem 2rem;margin-top:1.4rem}
+#tabs button{background:none;border:0;border-bottom:1px solid transparent;color:#d4e0eca0;font:400 1.15rem var(--serif);padding:.3rem 0;cursor:pointer}
+#tabs button:hover{color:var(--mist)}
+#tabs button[aria-selected=true]{color:var(--gold);border-color:var(--gold)}
+#credit{margin-top:1rem;font-size:.85rem;color:#d4e0ec88;min-height:2.6em;max-width:44rem;line-height:1.5}
+#tool .row{display:flex;flex-wrap:wrap;gap:1rem 2rem;align-items:center;margin-top:2.4rem}
+#tdrop{flex:1 1 20rem;display:grid;place-items:center;min-height:6.5rem;border:1px dashed #d4a43788;padding:1rem;text-align:center;font:italic 1.15rem var(--serif);color:var(--mist);cursor:pointer;transition:.3s}
+#tdrop.over,#tdrop:hover{border-color:var(--gold);background:#d4a4370f}
+#tdrop input{position:absolute;opacity:0;width:1px;height:1px}
+.btn{background:none;border:1px solid #d4e0ec55;color:var(--mist);font:1rem var(--serif);letter-spacing:.08em;padding:.7rem 1.2rem;cursor:pointer;transition:.3s}
+.btn:hover:not(:disabled),.btn:focus-visible{border-color:var(--gold);color:var(--gold);outline:none}
+.btn:disabled{opacity:.35;cursor:default}
+select.btn{padding:.65rem .8rem}
+#tbox{position:relative;margin-top:1.6rem;aspect-ratio:4/3;background:#0e1722;border:1px solid #d4a43744}
+#tcv{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+.ctl{display:flex;flex-wrap:wrap;gap:1rem 2.4rem;margin-top:1.2rem;align-items:center}
+.ctl label{display:flex;align-items:center;gap:.7rem;color:#d4e0ecc0;font-size:.95rem}
+.ctl input[type=range]{accent-color:var(--gold);width:9rem}
+#tmsg{margin-top:1rem;min-height:1.6em;color:#d4e0ecc0}
+#tnet{color:var(--gold)}
+.note{margin-top:.6rem;font-size:.9rem;color:#d4e0ec88;max-width:40rem;line-height:1.5}
+table.st{margin-top:2rem;border-collapse:collapse;font-size:.95rem;max-width:36rem;width:100%}
+table.st td{padding:.45rem 0;border-bottom:1px solid #d4e0ec22;color:#d4e0ecc0}
+table.st td:last-child{text-align:right;color:var(--mist);font-variant-numeric:tabular-nums}
+footer{padding:12vh 6vw 8vh;text-align:center;font:italic 1rem var(--serif);color:#d4e0ec88}
+@media (prefers-reduced-motion:reduce){.fog{animation:none}html{scroll-behavior:auto}}
+</style>
+<script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
+</head>
+<body class="locked">
+<div id="gate"><div><button id="enter" disabled>ENTER</button><p id="gp">Loading Wukong…</p></div></div>
+
+<div id="hero">
+  <div id="stage">
+    <video id="vid" src="assets/intro.mp4" muted playsinline preload="auto"></video>
+    <img id="plate" src="assets/plate.jpg" alt="">
+    <canvas id="gl" aria-label="Wukong, a 3D figure you can drag to turn"></canvas>
+  </div>
+  <div id="hint">drag him</div>
+  <button id="mute">sound on</button>
+</div>
+
+<main id="world">
+  <div class="fog"></div>
+  <section class="s">
+    <h2>Photos are flat. Objects are not.</h2>
+    <p class="lede">Show this page a picture of a toy, a mug or a figurine and it hands back a solid 3D shape you can spin, print or drop into a game. No account, no upload, no waiting on a server.</p>
+    <p class="lede"><a class="btn" href="#tool" style="text-decoration:none;display:inline-block">Make one</a></p>
+  </section>
+  <section class="s" id="tool">
+    <h2>Turn a photo of an object into a 3D shape.</h2>
+    <p class="lede">Drop in a photo of something on a plain background: a toy, a mug, a figurine. The page finds the object, estimates how far each part sticks out, and builds a solid you can spin all the way round. Download it as .glb for games and websites, or .stl for a 3D printer. Your photo never leaves this browser tab.</p>
+    <div class="row">
+      <label id="tdrop"><input id="tfile" type="file" accept="image/*">Drop a photo here, paste one, or choose a file</label>
+      <button class="btn" id="tsample">Try a sample</button>
+      <select class="btn" id="tmode" aria-label="Depth method"><option value="ai">AI depth (Depth Anything V2)</option><option value="quick">Quick depth, no AI</option></select>
+    </div>
+    <div id="tbox"><canvas id="tcv" aria-label="3D result, drag to spin it"></canvas></div>
+    <div class="ctl">
+      <label>Thickness <input id="trelief" type="range" min=".2" max="1.5" step=".05" value=".9"></label>
+      <label>Surface detail <input id="tdetail" type="range" min="0" max="1" step=".05" value=".5"></label>
+      <label><input id="tmirror" type="checkbox" checked> Mirror the front onto the back</label>
+      <label><input id="trefine" type="checkbox"> Sharpen outline (slower)</label>
+      <button class="btn" id="tglb" disabled>Download .glb</button>
+      <button class="btn" id="tstl" disabled>Download .stl</button>
+    </div>
+    <p id="tmsg">Choose a photo to start. Objects on a plain background work best.</p>
+    <p class="note">One photo shows one side. The back is a mirror of the front, so it is a good guess for symmetric objects and only a guess for the rest.</p>
+    <table class="st"><tbody id="tstat"></tbody></table>
+    <p class="lede" style="margin-top:1rem">Connection: <span id="tnet"></span></p>
+  </section>
+  <section class="s">
+    <h2>Three steps, all on your device.</h2>
+    <ol class="steps">
+      <li><b>Find the object</b><span>The page separates what you photographed from what is behind it, so only the object is built.</span></li>
+      <li><b>Measure the depth</b><span>An open AI model, Depth Anything V2, estimates how far each part of the object sticks out toward you.</span></li>
+      <li><b>Close the shape</b><span>The front is mirrored onto the back and joined at the outline, so the result is a solid you can export and print.</span></li>
+    </ol>
+  </section>
+  <section class="s" id="showcase">
+    <h2>Pick a model. Turn it over.</h2>
+    <p class="lede">Four open-licensed models, lit and drawn in your browser. Drag to orbit, scroll to zoom. Drop your own .glb file on the viewer and it opens here, never uploaded.</p>
+    <div id="sv"><canvas id="svc" aria-label="3D model viewer"></canvas><div id="svdrop">Drop a .glb here</div></div>
+    <div id="tabs" role="tablist"></div>
+    <p id="credit"></p>
+  </section>
+  <section class="s">
+    <h2>Everything runs on your machine.</h2>
+    <div class="proof">
+      <div><h3>Works offline</h3><p>The first AI run downloads the depth model once and the browser keeps it. After that, switch Wi-Fi off and the tool still works.</p></div>
+      <div><h3>Nothing uploaded</h3><p>No account, no server round trip. What you drag stays in your browser.</p></div>
+      <div><h3>Open parts</h3><p>three.js renders the scene. Swap in any .glb and the same page runs it.</p></div>
+    </div>
+  </section>
+  <footer>Fan work inspired by Black Myth: Wukong. Not affiliated with Game Science.</footer>
+</main>
+
+<script type="module">
+import * as THREE from 'three';
+import {GLTFLoader} from './vendor/loaders/GLTFLoader.js';
+import {RoomEnvironment} from './vendor/env/RoomEnvironment.js';
+const $=id=>document.getElementById(id), vid=$('vid'), cv=$('gl'), reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const music=new Audio('assets/music.mp3'); music.loop=true; music.volume=.7;
+// Stage is 1680x720 px = 16.8 x 7.2 units. In the film his feet are at (797,653) and he is ~202 px tall; the model is 0.978 units tall.
+const H=.489, S0=2.065, S1=6.3;            // half-height, start scale (matches the film), end scale
+const FEET0=(360-653)/100, FEET1=-3.45;
+const r=new THREE.WebGLRenderer({canvas:cv,alpha:true,antialias:true}); r.setPixelRatio(Math.min(devicePixelRatio,2)); r.setClearColor(0,0);
+r.toneMapping=THREE.ACESFilmicToneMapping; r.toneMappingExposure=1.05;
+const scene=new THREE.Scene(), cam=new THREE.OrthographicCamera(-8.4,8.4,3.6,-3.6,-50,50); cam.position.z=20;
+scene.environment=new THREE.PMREMGenerator(r).fromScene(new RoomEnvironment(),.04).texture; scene.environmentIntensity=.55;
+scene.add(new THREE.HemisphereLight(0xcfe0f5,0x2a2438,.8));
+const key=new THREE.DirectionalLight(0xdfe9ff,2.4); key.position.set(-3,4,6); scene.add(key);
+const rim=new THREE.DirectionalLight(0xffc98a,2.6); rim.position.set(3,2,-5); scene.add(rim);
+const root=new THREE.Group(), spin=new THREE.Group(); root.add(spin); scene.add(root);
+// soft contact shadow under his feet (does not spin)
+const sc=document.createElement('canvas'); sc.width=sc.height=128; const sx=sc.getContext('2d'), gr=sx.createRadialGradient(64,64,0,64,64,64);
+gr.addColorStop(0,'rgba(0,0,0,.5)'); gr.addColorStop(1,'rgba(0,0,0,0)'); sx.fillStyle=gr; sx.fillRect(0,0,128,128);
+const sh=new THREE.Mesh(new THREE.PlaneGeometry(.9,.5),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(sc),transparent:true,depthWrite:false})); sh.rotation.x=-Math.PI/2; sh.position.set(0,-H+.004,0); root.add(sh);
+let mat=null, ready=false;
+new GLTFLoader().load('assets/wukong.glb',g=>{
+  g.scene.traverse(n=>{if(n.isMesh){n.frustumCulled=false; mat=n.material; mat.emissive=new THREE.Color(0)}}); spin.add(g.scene); ready=true; $('enter').disabled=false; $('gp').textContent='Sound on. Headphones help.';
+},e=>{if(e.lengthComputable)$('gp').textContent=`Loading Wukong… ${Math.round(e.loaded/e.total*100)}%`},
+ ()=>{$('gp').textContent='Could not load the model. Serve this folder over http, not file://.'});
+function size(){const st=$('stage');r.setSize(st.clientWidth,st.clientHeight,false)}
+addEventListener('resize',size); size();
+
+let phase='gate', t0=0, drag=0, dragging=false, lx=0, mx=-.3;
+const ease=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2, sm=(a,b,x)=>{x=Math.min(Math.max((x-a)/(b-a),0),1);return x*x*(3-2*x)}, lerp=(a,b,t)=>a+(b-a)*t;
+$('enter').onclick=async()=>{
+  if(!ready) return;
+  $('gate').classList.add('gone'); document.body.classList.remove('locked');
+  try{await music.play()}catch{}
+  $('mute').classList.add('on'); vid.play(); phase='video';
+};
+$('mute').onclick=()=>{music.muted=!music.muted; $('mute').textContent=music.muted?'sound off':'sound on'};
+vid.addEventListener('ended',()=>{ if(phase==='video'){phase='hold'; t0=performance.now(); $('hint').style.opacity=1}});
+cv.addEventListener('pointerdown',e=>{dragging=true; lx=e.clientX; cv.setPointerCapture(e.pointerId)});
+cv.addEventListener('pointermove',e=>{const b=cv.getBoundingClientRect(); mx=((e.clientX-b.left)/b.width-.5)*2;
+  if(dragging){drag+=(e.clientX-lx)*.012; lx=e.clientX; $('hint').style.opacity=0}});
+['pointerup','pointercancel'].forEach(n=>cv.addEventListener(n,()=>dragging=false));
+
+function pose(P,dt){
+  // His back faces us at the start (as in the film). He turns through his left profile to face the front, steps toward the camera and grows.
+  const e=ease(P), k=sm(0,.4,P);
+  spin.rotation.y=(.5+e)*Math.PI+drag;
+  const s=lerp(S0,S1,e); root.scale.setScalar(s); root.position.set(lerp(-.43,0,e),lerp(FEET0,FEET1,e)+H*s,0);
+  if(mat){mat.color.setRGB(lerp(1.5,1,k),lerp(.55,1,k),lerp(.75,1,k)); mat.emissive.setRGB(.62,.72,.82).multiplyScalar(.2*(1-sm(0,.5,P)))}
+  key.position.set(-2+mx*3,4,6);
+  if(!dragging) drag*=Math.pow(.5,dt);
+}
+let last=performance.now();
+function frame(now){
+  requestAnimationFrame(frame); const dt=Math.min((now-last)/1000,.05); last=now;
+  if(phase==='video'){const left=vid.duration-vid.currentTime;
+    if(left<1.2){const k=ease(1-left/1.2); $('plate').style.opacity=k; cv.style.opacity=k}}
+  if(phase==='video'||phase==='hold'){
+    if(phase==='hold'){$('plate').style.opacity=1; cv.style.opacity=1}
+    const el=phase==='hold'?(now-t0)/1000:0;
+    const P=phase==='hold'?(reduce?(el>1?1:0):Math.min(Math.max((el-2)/18,0),1)):0;
+    pose(P,dt); r.render(scene,cam);
+  }
+}
+requestAnimationFrame(frame); window.__hero={pose:()=>spin.rotation.y};
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {GLTFLoader} from './vendor/loaders/GLTFLoader.js';
+import {OrbitControls} from './vendor/controls/OrbitControls.js';
+import {RoomEnvironment} from './vendor/env/RoomEnvironment.js';
+const M=[
+ {n:'Fox',f:'Fox.glb',c:'Model by PixelMannen (CC0). Rigging and animation by tomkranis (CC BY 4.0). glTF conversion by @AsoboStudio and @scurest (CC BY 4.0). Source: Khronos glTF Sample Assets.'},
+ {n:'Toy car',f:'ToyCar.glb',c:'Toy car by Guido Odendahl (CC0). Source: Khronos glTF Sample Assets.'},
+ {n:'Lantern',f:'Lantern.glb',c:'Lantern by Microsoft and sbtron (CC0). Source: Khronos glTF Sample Assets.'},
+ {n:'Avocado',f:'Avocado.glb',c:'Avocado by Microsoft (CC0). Source: Khronos glTF Sample Assets.'}];
+const sec=document.getElementById('showcase'), box=document.getElementById('sv'), cv=document.getElementById('svc'), tabs=document.getElementById('tabs'), cred=document.getElementById('credit');
+let R,scene,cam,ctl,mixer,obj,vis=false,booted=false,blob=null,cur=0;
+const clock=new THREE.Clock();
+M.forEach((m,i)=>{const b=document.createElement('button');b.textContent=m.n;b.role='tab';b.onclick=()=>show(i);tabs.append(b)});
+function mark(i){[...tabs.children].forEach((b,k)=>b.setAttribute('aria-selected',k===i))}
+function boot(){
+  R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true}); R.setPixelRatio(Math.min(devicePixelRatio,2)); R.toneMapping=THREE.ACESFilmicToneMapping;
+  scene=new THREE.Scene(); scene.environment=new THREE.PMREMGenerator(R).fromScene(new RoomEnvironment(),.04).texture;
+  cam=new THREE.PerspectiveCamera(35,16/9,.1,100); cam.position.set(2.2,1.2,3.4);
+  ctl=new OrbitControls(cam,cv); ctl.enableDamping=true; ctl.autoRotate=true; ctl.autoRotateSpeed=1.2; ctl.enablePan=false;
+  ctl.addEventListener('start',()=>ctl.autoRotate=false);
+  new ResizeObserver(()=>{const w=box.clientWidth,h=box.clientHeight;R.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}).observe(box);
+  (function loop(){requestAnimationFrame(loop); if(!vis) return; const dt=clock.getDelta(); mixer&&mixer.update(dt); ctl.update(); R.render(scene,cam)})();
+  show(0);
+}
+function load(url,label){
+  new GLTFLoader().load(url,g=>{
+    if(obj) scene.remove(obj); mixer=null; obj=g.scene;
+    const b=new THREE.Box3().setFromObject(obj), sz=b.getSize(new THREE.Vector3()), c=b.getCenter(new THREE.Vector3()), k=2.2/Math.max(sz.x,sz.y,sz.z);
+    obj.scale.multiplyScalar(k); obj.position.copy(c).multiplyScalar(-k); scene.add(obj);
+    if(g.animations.length){mixer=new THREE.AnimationMixer(obj); mixer.clipAction(g.animations[Math.min(1,g.animations.length-1)]).play()}
+    ctl.target.set(0,0,0); ctl.autoRotate=true;
+  },undefined,()=>{cred.textContent=`Could not open ${label}. Use a .glb file, and serve this page over http.`});
+}
+function show(i){cur=i; mark(i); cred.textContent=M[i].c; load('showcase/'+M[i].f,M[i].n)}
+box.addEventListener('dragover',e=>{e.preventDefault(); box.classList.add('over')});
+box.addEventListener('dragleave',()=>box.classList.remove('over'));
+box.addEventListener('drop',e=>{e.preventDefault(); box.classList.remove('over'); const f=e.dataTransfer.files[0];
+  if(!f||!/\.glb$/i.test(f.name)){cred.textContent='Drop a .glb file. Other formats are not supported yet.';return}
+  if(blob) URL.revokeObjectURL(blob); blob=URL.createObjectURL(f); mark(-1); cred.textContent=`${f.name}. This file stays in your browser.`; load(blob,f.name)});
+new IntersectionObserver(es=>{vis=es[0].isIntersecting; if(vis&&!booted){booted=true; boot()}},{rootMargin:'300px'}).observe(sec);
+</script>
+<script type="module" src="tool.js"></script>
+</body>
+</html>
